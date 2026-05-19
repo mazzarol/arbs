@@ -60,16 +60,6 @@ app/
 
 Run from the Agents page. Results show in the Jobs list with confidence scores.
 
-## Deployment
-
-Reverse proxy through Caddy:
-
-```caddy
-arbs.inchargesolutions.au {
-    reverse_proxy 100.66.58.2:8000
-}
-```
-
 ## License
 
 GPL-3.0-or-later — see [LICENSE](LICENSE)
