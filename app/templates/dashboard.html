@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Dashboard</h1>
+
+<div class="stats">
+    <div class="stat">
+        <div class="number">{{ job_count }}</div>
+        <div class="label">Jobs Scraped</div>
+    </div>
+    <div class="stat">
+        <div class="number">{{ matched_count }}<span style="font-size:1rem;color:var(--muted);"> / {{ hidden_count + matched_count }}</span></div>
+        <div class="label">
+            Employers Revealed
+            {% if hidden_count > 0 %}
+            · <span style="color:var(--red);">{{ hidden_count }} hidden</span>
+            {% endif %}
+        </div>
+    </div>
+    <div class="stat">
+        <div class="number">{{ employer_count }}</div>
+        <div class="label">Known Employers</div>
+    </div>
+</div>
+
+<form action="/scrape" method="post">
+    <input type="text" name="keywords" value="{{ last_keywords }}" placeholder="Keywords"
+           list="recent-searches" autocomplete="off">
+    <datalist id="recent-searches">
+        {% for s in recent_searches %}
+        <option value="{{ s }}">
+        {% endfor %}
+    </datalist>
+    <select name="location">
+        <option value="{{ last_location }}" selected>{{ last_location }}</option>
+        <option value="Remote">🌏 Remote</option>
+        <option value="Brisbane QLD">Brisbane QLD</option>
+        <option value="Gold Coast QLD">Gold Coast QLD</option>
+        <option value="All Australia">All Australia</option>
+        <option value="Queensland QLD">Queensland QLD</option>
+        <option value="Sydney NSW">Sydney NSW</option>
+        <option value="Melbourne VIC">Melbourne VIC</option>
+        <option value="Perth WA">Perth WA</option>
+        <option value="Adelaide SA">Adelaide SA</option>
+        <option value="Canberra ACT">Canberra ACT</option>
+        <option value="Hobart TAS">Hobart TAS</option>
+        <option value="Darwin NT">Darwin NT</option>
+    </select>
+    <button type="submit">Scrape Jobs</button>
+</form>
+
+<h2>Recent Jobs</h2>
+{% if recent_jobs %}
+<table>
+    <thead>
+        <tr>
+            <th>Title</th>
+            <th>Listed By</th>
+            <th>Real Employer</th>
+            <th>Location</th>
+            <th>Age</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for job in recent_jobs %}
+        <tr>
+            <td><a href="/jobs/{{ job.id }}" class="job-title">{{ job.title }}</a></td>
+            <td class="company">{{ job.listed_company or '—' }}</td>
+            <td>
+                {% if job.found_employer %}
+                <span class="badge badge-matched">{{ job.found_employer }}</span>
+                {% if job.found_employer in employer_urls %}
+                <a href="{{ employer_urls[job.found_employer] }}" target="_blank" style="font-size:0.8rem;margin-left:4px;" title="Employer website">🔗</a>
+                {% endif %}
+                {% elif job.is_direct %}
+                <span class="badge badge-direct">Direct</span>
+                {% else %}
+                <span class="badge badge-recruiter">Hidden</span>
+                {% endif %}
+            </td>
+            <td class="location">{{ job.location }}</td>
+            <td class="company">{{ job.first_seen | age_days }}d</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p class="empty">No jobs yet. Hit "Scrape Jobs" to get started.</p>
+{% endif %}
+
+<h2>Employers</h2>
+{% if employers %}
+<table>
+    <thead>
+        <tr><th>Name</th><th>Domain</th><th>Type</th></tr>
+    </thead>
+    <tbody>
+    {% for emp in employers %}
+        <tr>
+            <td>{{ emp.name }}</td>
+            <td>{{ emp.domain or '—' }}</td>
+            <td><span class="badge badge-direct">{% if emp.is_direct_hire %}Direct{% else %}Recruiter{% endif %}</span></td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p class="empty">No employers in database yet.</p>
+{% endif %}
+{% endblock %}

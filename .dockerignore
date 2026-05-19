@@ -1,0 +1,12 @@
+.venv/
+__pycache__/
+*.pyc
+*.db
+.git/
+*.md
+PLAN.md
+STRATEGY.md
+BRAND.md
+seed_employers.py
+DEPLOY.md
+.env

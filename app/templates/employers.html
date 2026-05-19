@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Employers <span style="color:var(--muted);font-size:1rem;">({{ employers|length }})</span></h1>
+
+{% if employers %}
+<table>
+    <thead>
+        <tr>
+            <th><a href="?sort=name&order={% if sort=='name' and order=='asc' %}desc{% else %}asc{% endif %}" style="color:inherit;text-decoration:none;">Name {% if sort=='name' %}{% if order=='asc' %}▲{% else %}▼{% endif %}{% endif %}</a></th>
+            <th style="width:60px;">Site</th>
+            <th style="width:60px;">Jobs</th>
+            <th><a href="?sort=is_direct_hire&order={% if sort=='is_direct_hire' and order=='asc' %}desc{% else %}asc{% endif %}" style="color:inherit;text-decoration:none;">Type {% if sort=='is_direct_hire' %}{% if order=='asc' %}▲{% else %}▼{% endif %}{% endif %}</a></th>
+            <th><a href="?sort=added_at&order={% if sort=='added_at' and order=='asc' %}desc{% else %}asc{% endif %}" style="color:inherit;text-decoration:none;">Added {% if sort=='added_at' %}{% if order=='asc' %}▲{% else %}▼{% endif %}{% endif %}</a></th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for emp in employers %}
+        <tr>
+            <td>{{ emp.name }}</td>
+            <td style="text-align:center;">
+                {% if emp.domain %}
+                <a href="https://{{ emp.domain }}" target="_blank" title="{{ emp.domain }}">🌐</a>
+                {% else %}
+                <span style="opacity:0.3;">—</span>
+                {% endif %}
+            </td>
+            <td style="text-align:center;">
+                {% if emp.careers_url %}
+                <a href="{{ emp.careers_url }}" target="_blank" title="Careers page">💼</a>
+                {% else %}
+                <span style="opacity:0.3;">—</span>
+                {% endif %}
+            </td>
+            <td><span class="badge badge-{% if emp.is_direct_hire %}direct{% else %}recruiter{% endif %}">{% if emp.is_direct_hire %}Direct{% else %}Recruiter{% endif %}</span></td>
+            <td class="company">{{ emp.added_at.strftime('%Y-%m-%d') }}</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p class="empty">No employers in database.</p>
+{% endif %}
+{% endblock %}

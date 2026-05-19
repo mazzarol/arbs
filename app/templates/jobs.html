@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Jobs <span style="color:var(--muted);font-size:1rem;">({{ total }} total)</span></h1>
+
+<div style="display:flex;gap:0.5rem;margin-bottom:1rem;">
+    <a href="/jobs?filter=all" class="badge {% if filter == 'all' %}badge-matched{% else %}badge-direct{% endif %}" style="text-decoration:none;">All</a>
+    <a href="/jobs?filter=hidden" class="badge {% if filter == 'hidden' %}badge-recruiter{% else %}badge-direct{% endif %}" style="text-decoration:none;">👻 Hidden</a>
+    <a href="/jobs?filter=revealed" class="badge {% if filter == 'revealed' %}badge-matched{% else %}badge-direct{% endif %}" style="text-decoration:none;">✅ Revealed</a>
+    <a href="/jobs?filter=direct" class="badge {% if filter == 'direct' %}badge-direct{% else %}badge-direct{% endif %}" style="text-decoration:none;">🏢 Direct</a>
+</div>
+
+<form action="/scrape" method="post" style="margin-bottom:1rem;">
+    <input type="text" name="keywords" value="{{ last_keywords }}" placeholder="Keywords"
+           list="recent-searches" autocomplete="off">
+    <datalist id="recent-searches">
+        {% for s in recent_searches %}
+        <option value="{{ s }}">
+        {% endfor %}
+    </datalist>
+    <select name="location">
+        <option value="{{ last_location }}" selected>{{ last_location }}</option>
+        <option value="Remote">🌏 Remote</option>
+        <option value="Brisbane QLD">Brisbane QLD</option>
+        <option value="Gold Coast QLD">Gold Coast QLD</option>
+        <option value="All Australia">All Australia</option>
+        <option value="Queensland QLD">Queensland QLD</option>
+        <option value="Sydney NSW">Sydney NSW</option>
+        <option value="Melbourne VIC">Melbourne VIC</option>
+        <option value="Perth WA">Perth WA</option>
+        <option value="Adelaide SA">Adelaide SA</option>
+        <option value="Canberra ACT">Canberra ACT</option>
+        <option value="Hobart TAS">Hobart TAS</option>
+        <option value="Darwin NT">Darwin NT</option>
+    </select>
+    <button type="submit">Scrape Jobs</button>
+</form>
+
+{% if jobs %}
+<table>
+    <thead>
+        <tr>
+            <th><a href="?sort=title&order={% if sort=='title' and order=='asc' %}desc{% else %}asc{% endif %}&filter={{ filter }}" style="color:inherit;text-decoration:none;">Title {% if sort=='title' %}{% if order=='asc' %}▲{% else %}▼{% endif %}{% endif %}</a></th>
+            <th><a href="?sort=listed_company&order={% if sort=='listed_company' and order=='asc' %}desc{% else %}asc{% endif %}&filter={{ filter }}" style="color:inherit;text-decoration:none;">Company {% if sort=='listed_company' %}{% if order=='asc' %}▲{% else %}▼{% endif %}{% endif %}</a></th>
+            <th><a href="?sort=found_employer&order={% if sort=='found_employer' and order=='asc' %}desc{% else %}asc{% endif %}&filter={{ filter }}" style="color:inherit;text-decoration:none;">Real Employer {% if sort=='found_employer' %}{% if order=='asc' %}▲{% else %}▼{% endif %}{% endif %}</a></th>
+            <th><a href="?sort=location&order={% if sort=='location' and order=='asc' %}desc{% else %}asc{% endif %}&filter={{ filter }}" style="color:inherit;text-decoration:none;">Location {% if sort=='location' %}{% if order=='asc' %}▲{% else %}▼{% endif %}{% endif %}</a></th>
+            <th style="width:60px;"><a href="?sort=scraped_at&order={% if sort=='scraped_at' and order=='asc' %}desc{% else %}asc{% endif %}&filter={{ filter }}" style="color:inherit;text-decoration:none;">Age {% if sort=='scraped_at' %}{% if order=='asc' %}▲{% else %}▼{% endif %}{% endif %}</a></th>
+            <th><a href="?sort=source&order={% if sort=='source' and order=='asc' %}desc{% else %}asc{% endif %}&filter={{ filter }}" style="color:inherit;text-decoration:none;">Source {% if sort=='source' %}{% if order=='asc' %}▲{% else %}▼{% endif %}{% endif %}</a></th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for job in jobs %}
+        <tr>
+            <td><a href="/jobs/{{ job.id }}">{{ job.title }}</a></td>
+            <td class="company">{{ job.listed_company or '—' }}</td>
+            <td>
+                {% if job.found_employer %}
+                <span class="badge badge-matched">{{ job.found_employer }}</span>
+                {% if job.found_employer in employer_urls %}
+                <a href="{{ employer_urls[job.found_employer] }}" target="_blank" style="font-size:0.8rem;margin-left:4px;" title="Employer website">🔗</a>
+                {% endif %}
+                {% elif job.is_direct %}
+                <span class="badge badge-direct">Direct</span>
+                {% else %}
+                <span class="badge badge-recruiter">Recruiter</span>
+                {% endif %}
+            </td>
+            <td class="location">{{ job.location }}</td>
+            <td class="company">{{ job.first_seen | age_days }}d</td>
+            <td class="company">{{ job.source }}</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+{% if pages > 1 %}
+<div class="pagination">
+    {% for p in range(1, pages + 1) %}
+    <a href="/jobs?page={{ p }}&sort={{ sort }}&order={{ order }}&filter={{ filter }}" {% if p == page %}class="active"{% endif %}>{{ p }}</a>
+    {% endfor %}
+</div>
+{% endif %}
+
+{% else %}
+<p class="empty">No jobs scraped yet.</p>
+{% endif %}
+{% endblock %}

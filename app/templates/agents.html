@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>AI Agents</h1>
+
+<p style="color:var(--muted);margin-bottom:1rem;">
+    Agents use DeepSeek to analyze job descriptions and identify hidden employers
+    behind recruiter-posted roles.
+</p>
+
+<form action="/agents/run" method="post" style="margin-bottom:2rem;">
+    {% if agent_running %}
+    <button type="submit" disabled style="opacity:0.5;cursor:not-allowed;">⏳ Processing...</button>
+    <span style="color:var(--orange);margin-left:1rem;">Agents are running — refresh to check progress</span>
+    {% else %}
+    <button type="submit">🕵️ Find Hidden Employers</button>
+    <span style="color:var(--muted);margin-left:1rem;font-size:0.85rem;">
+        Phrase search + JD fingerprint
+    </span>
+    {% endif %}
+</form>
+
+<h2>Recent Runs</h2>
+{% if runs %}
+<table>
+    <thead>
+        <tr><th>Agent</th><th>Status</th><th>Jobs</th><th>Found</th><th>Started</th><th>Finished</th></tr>
+    </thead>
+    <tbody>
+    {% for run in runs %}
+        <tr>
+            <td>{{ run.agent_name }}</td>
+            <td>
+                {% if run.status == 'completed' %}
+                <span class="badge badge-direct">{{ run.status }}</span>
+                {% elif run.status == 'running' %}
+                <span class="badge badge-matched">{{ run.status }}</span>
+                {% else %}
+                <span class="badge badge-recruiter">{{ run.status }}</span>
+                {% endif %}
+            </td>
+            <td>{{ run.jobs_processed }}</td>
+            <td>{{ run.employers_found }}</td>
+            <td class="company">{{ run.started_at.strftime('%H:%M:%S') }}</td>
+            <td class="company">{{ run.finished_at.strftime('%H:%M:%S') if run.finished_at else '—' }}</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p class="empty">No agent runs yet. Agents will run automatically when new jobs are scraped.</p>
+{% endif %}
+{% endblock %}
